@@ -144,6 +144,19 @@ void randSeed() {
 	x = RANDOM_REG32;
 	y = random (0xFFFFFFFF) ^ RANDOM_REG32;
 	z = random (0xFFFFFFFF) ^ RANDOM_REG32;
+#elif IS_PICO()
+	uint8_t i = adc_get_selected_input();
+	adc_gpio_init(29);
+	adc_init();
+	adc_set_temp_sensor_enabled(true);
+	adc_select_input(4); // temp sensor. usually outputs a number within a small range
+	int k = adc_read();
+	adc_select_input(3); // floating analog input on Pico
+	x = (k << 16) | adc_read();
+	y = (adc_read() << 16) | k;
+	z = (x >> 8) * adc_read();
+	adc_set_temp_sensor_enabled(false);
+	adc_select_input(i);
 #else
 #warning Automatic random seeding not implemented on this platform
 #endif
